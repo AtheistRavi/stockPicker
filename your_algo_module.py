@@ -1,54 +1,43 @@
-import yfinance as yf
+# your_algo_module.py
+
 import requests
 
-# Fetch stock symbols from NSE
-def fetch_nse_stock_symbols():
-    url = "https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050"
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Referer": "https://www.nseindia.com/"
-    }
+def fetch_realtime_stock_data(symbol):
+    """
+    Fetch real-time stock data from indianstockapi.com
+    """
+    url = f"https://indianstockapi.com/api/stock_info?ticker={symbol.upper()}"
     try:
-        session = requests.Session()
-        session.get("https://www.nseindia.com", headers=headers)  # set cookies
-        response = session.get(url, headers=headers, timeout=10)
-        data = response.json()
-        symbols = [item["symbol"] for item in data["data"]]
-        return symbols
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {'error': f"Failed to fetch data for {symbol}"}
     except Exception as e:
-        print("Error fetching stock symbols:", e)
-        return ["RELIANCE", "INFY", "TCS"]  # fallback list
+        return {'error': str(e)}
 
-# Get stock data using yfinance
-def get_realtime_stock_data(symbol):
-    try:
-        stock = yf.Ticker(symbol + ".NS")  # NSE symbols
-        data = stock.history(period="1d", interval="5m")
-        if not data.empty:
-            price = round(data['Close'].iloc[-1], 2)
-            # Example static metrics — replace with real fetch if needed
-            pe = 20
-            de_ratio = 0.4
-            return price, pe, de_ratio
-        return None, None, None
-    except Exception as e:
-        print(f"Error fetching data for {symbol}:", e)
-        return None, None, None
 
-# Filter stocks based on PE and D/E
 def get_filtered_stocks():
-    stock_symbols = fetch_nse_stock_symbols()
-    filtered_stocks = []
-    for symbol in stock_symbols:
-        price, pe, de_ratio = get_realtime_stock_data(symbol)
-        if price and pe < 25 and de_ratio < 0.6:
-            filtered_stocks.append({
-                "symbol": symbol,
-                "price": price,
-                "pe": pe,
-                "de_ratio": de_ratio
-            })
-    filtered_stocks.sort(key=lambda x: x["price"], reverse=True)
-    return filtered_stocks
+    """
+    Replace this temporary list with dynamic fetching when available.
+    """
+    test_symbols = ["TCS", "INFY", "RELIANCE", "HDFCBANK", "ICICIBANK"]
+    filtered = []
+
+    for symbol in test_symbols:
+        data = fetch_realtime_stock_data(symbol)
+        if "error" not in data:
+            try:
+                price = float(data.get("price", 0))
+                volume = int(data.get("volume", 0))
+
+                # Example logic: pick stocks with price > 500 and volume > 1L
+                if price > 500 and volume > 100000:
+                    filtered.append({
+                        "symbol": symbol,
+                        "price": price,
+                        "volume": volume
+                    })
+            except:
+                continue
+    return filtered
