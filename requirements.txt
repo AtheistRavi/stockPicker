@@ -1,4 +1,3 @@
-Flask==2.0.2
-yfinance==0.1.74
-requests>=2.26
-gunicorn==20.1.0
+Flask==2.2.5
+Werkzeug==2.2.3
+gunicorn
